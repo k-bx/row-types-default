@@ -60,4 +60,5 @@ fromParamsIns mv builder = do
 
 main :: IO ()
 main = do
-  putStrLn "hello world"
+  product' <- buildProduct (#name .== Nothing .+ #companyId .== Nothing)
+  print product'
