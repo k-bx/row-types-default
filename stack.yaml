@@ -1,0 +1,5 @@
+resolver: lts-13.20
+packages:
+- .
+extra-deps:
+- row-types-0.2.3.0@sha256:976cc6119b982057ad949e4b01ff849fb290c933248bda47e81220b84724cae3

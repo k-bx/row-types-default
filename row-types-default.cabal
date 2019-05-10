@@ -1,0 +1,32 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 4e5079d7dd0c22965644eba937783d071a10fb4b6a7b02c81e3719ae4d9f7653
+
+name:           row-types-default
+version:        0.1.0.0
+category:       Web
+homepage:       https://github.com/k-bx/row-types-default#readme
+author:         Kostiantyn Rybnikov
+maintainer:     k-bx@k-bx.com
+copyright:      2019 Kostiantyn Rybnikov
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+executable row-types-default
+  main-is: Main.hs
+  other-modules:
+      Paths_row_types_default
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Werror
+  build-depends:
+      base >=4.7 && <5
+    , row-types
+  default-language: Haskell2010
