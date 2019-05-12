@@ -38,10 +38,10 @@ buildCompany ps = do
   companyName <- fromParams (ps .! #name) buildName
   pure $ Company {..}
 
-type BuildProduct = "name" .== String .+ "companyId" .== CompanyId
+type BuildProduct = "name" .== String .+ "companyId" .== CompanyId .+ "company" .== BuildCompany
 
 defProduct :: Rec (Row.Map Maybe BuildProduct)
-defProduct = #name .== Nothing .+ #companyId .== Nothing
+defProduct = #name .== Nothing .+ #companyId .== Nothing .+ #company .== BuildCompany
 
 buildProduct ::
   Rec (Row.Map Maybe BuildProduct) -> IO Product
