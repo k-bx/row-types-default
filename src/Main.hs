@@ -9,6 +9,7 @@
 module Main where
 
 import Data.Row
+import qualified Data.Row.Records as Row
 import GHC.Generics
 
 type CompanyId = Int
@@ -27,14 +28,23 @@ data Product = Product
 buildName :: IO String
 buildName = pure "Fancy Generated Name"
 
-buildCompany :: Rec ("name" .== Maybe String) -> IO Company
+type BuildCompany = "name" .== String
+
+defCompany :: Rec (Row.Map Maybe BuildCompany)
+defCompany = #name .== Nothing
+
+buildCompany :: Rec (Row.Map Maybe BuildCompany) -> IO Company
 buildCompany ps = do
   companyName <- fromParams (ps .! #name) buildName
   pure $ Company {..}
 
+type BuildProduct = "name" .== String .+ "companyId" .== CompanyId
+
+defProduct :: Rec (Row.Map Maybe BuildProduct)
+defProduct = #name .== Nothing .+ #companyId .== Nothing
+
 buildProduct ::
-     Rec ("name" .== Maybe String .+ "companyId" .== Maybe CompanyId)
-  -> IO Product
+  Rec (Row.Map Maybe BuildProduct) -> IO Product
 buildProduct ps = do
   productName <- fromParams (ps .! #name) buildName
   productCompanyId <- fromParamsIns (ps .! #companyId) (buildCompany (#name .== Nothing))
@@ -60,5 +70,5 @@ fromParamsIns mv builder = do
 
 main :: IO ()
 main = do
-  product' <- buildProduct (#name .== Nothing .+ #companyId .== Nothing)
+  product' <- buildProduct (Row.map' Just (#name .== "awesome product") .// defProduct)
   print product'
