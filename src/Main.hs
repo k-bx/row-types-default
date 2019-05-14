@@ -9,7 +9,6 @@
 module Main where
 
 import Data.Row
-import qualified Data.Row.Records as Row
 import GHC.Generics
 
 type CompanyId = Int
@@ -28,26 +27,26 @@ data Product = Product
 buildName :: IO String
 buildName = pure "Fancy Generated Name"
 
-type BuildCompany = "name" .== String
+type BuildCompany = "name" .== Maybe String
 
-defCompany :: Rec (Row.Map Maybe BuildCompany)
+defCompany :: Rec BuildCompany
 defCompany = #name .== Nothing
 
-buildCompany :: Rec (Row.Map Maybe BuildCompany) -> IO Company
+buildCompany :: Rec BuildCompany -> IO Company
 buildCompany ps = do
   companyName <- fromParams (ps .! #name) buildName
   pure $ Company {..}
 
-type BuildProduct = "name" .== String .+ "companyId" .== CompanyId .+ "company" .== Rec (Row.Map Maybe BuildCompany)
+type BuildProduct = "name" .== Maybe String .+ "companyId" .== Maybe CompanyId .+ "company" .== Rec BuildCompany
 
-defProduct :: Rec (Row.Map Maybe BuildProduct)
-defProduct = #name .== Nothing .+ #companyId .== Nothing .+ #company .== Just defCompany
+defProduct :: Rec BuildProduct
+defProduct = #name .== Nothing .+ #companyId .== Nothing .+ #company .== defCompany
 
 buildProduct ::
-  Rec (Row.Map Maybe BuildProduct) -> IO Product
+  Rec BuildProduct -> IO Product
 buildProduct ps = do
   productName <- fromParams (ps .! #name) buildName
-  productCompanyId <- fromParamsIns (ps .! #companyId) (buildCompany (maybe defCompany id (ps .! #company)))
+  productCompanyId <- fromParamsIns (ps .! #companyId) (buildCompany (ps .! #company))
   pure $ Product {..}
 
 -- | think persistent's `insert` here, returning record id
@@ -72,9 +71,6 @@ main :: IO ()
 main = do
   product' <-
     buildProduct
-      (Row.map' Just
-         (#name .== "awesome product" .+
-          #company .== (Row.map' Just (#name .== "awesome company"))
-                       .// defCompany)
-         .// defProduct)
+      ((#name .== Just "awesome product" .+
+        #company .== ((#name .== Just "awesome company") .// defCompany)) .// defProduct)
   print product'
