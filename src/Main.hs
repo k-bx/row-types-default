@@ -38,16 +38,16 @@ buildCompany ps = do
   companyName <- fromParams (ps .! #name) buildName
   pure $ Company {..}
 
-type BuildProduct = "name" .== String .+ "companyId" .== CompanyId .+ "company" .== BuildCompany
+type BuildProduct = "name" .== String .+ "companyId" .== CompanyId .+ "company" .== Rec (Row.Map Maybe BuildCompany)
 
 defProduct :: Rec (Row.Map Maybe BuildProduct)
-defProduct = #name .== Nothing .+ #companyId .== Nothing .+ #company .== BuildCompany
+defProduct = #name .== Nothing .+ #companyId .== Nothing .+ #company .== Just defCompany
 
 buildProduct ::
   Rec (Row.Map Maybe BuildProduct) -> IO Product
 buildProduct ps = do
   productName <- fromParams (ps .! #name) buildName
-  productCompanyId <- fromParamsIns (ps .! #companyId) (buildCompany (#name .== Nothing))
+  productCompanyId <- fromParamsIns (ps .! #companyId) (buildCompany (maybe defCompany id (ps .! #company)))
   pure $ Product {..}
 
 -- | think persistent's `insert` here, returning record id
@@ -70,5 +70,11 @@ fromParamsIns mv builder = do
 
 main :: IO ()
 main = do
-  product' <- buildProduct (Row.map' Just (#name .== "awesome product") .// defProduct)
+  product' <-
+    buildProduct
+      (Row.map' Just
+         (#name .== "awesome product" .+
+          #company .== (Row.map' Just (#name .== "awesome company"))
+                       .// defCompany)
+         .// defProduct)
   print product'
